@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>R&D Transcript Processor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            max-width: 600px;
+            width: 100%;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            color: #2c3e50;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            color: #7f8c8d;
+            font-size: 1.1em;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #2c3e50;
+            font-size: 1.1em;
+        }
+        
+        input[type="text"], textarea {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #ecf0f1;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+            font-family: inherit;
+        }
+        
+        input[type="text"]:focus, textarea:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+        
+        textarea {
+            resize: vertical;
+            min-height: 200px;
+        }
+        
+        .submit-btn {
+            background: linear-gradient(45deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 8px;
+            font-size: 1.2em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            width: 100%;
+        }
+        
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(52, 152, 219, 0.3);
+        }
+        
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+        
+        .submit-btn:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            font-weight: bold;
+            text-align: center;
+            display: none;
+        }
+        
+        .status.success {
+            background: #d5f4e6;
+            color: #27ae60;
+            border: 2px solid #27ae60;
+        }
+        
+        .status.error {
+            background: #fdf2f2;
+            color: #e74c3c;
+            border: 2px solid #e74c3c;
+        }
+        
+        .status.loading {
+            background: #e8f4f8;
+            color: #3498db;
+            border: 2px solid #3498db;
+        }
+        
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .instructions {
+            background: #f8f9fa;
+            border-left: 4px solid #3498db;
+            padding: 20px;
+            margin-bottom: 30px;
+            border-radius: 4px;
+        }
+        
+        .instructions h3 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        .instructions ul {
+            color: #5a6c7d;
+            padding-left: 20px;
+        }
+        
+        .instructions li {
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 R&D Transcript Processor</h1>
+            <p>Transform meeting transcripts into structured R&D documents</p>
+        </div>
+        
+        <div class="instructions">
+            <h3>📋 How to use:</h3>
+            <ul>
+                <li>Enter the company name</li>
+                <li>Paste your meeting transcript below</li>
+                <li>Click "Process Transcript"</li>
+                <li>You'll receive an email with the generated document</li>
+            </ul>
+        </div>
+        
+        <form id="transcriptForm">
+            <div class="form-group">
+                <label for="company">🏢 Company Name</label>
+                <input type="text" id="company" name="company" placeholder="e.g., TechCorp GmbH" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="transcript">📝 Meeting Transcript</label>
+                <textarea id="transcript" name="transcript" 
+                    placeholder="Paste your meeting transcript here...&#10;&#10;Example:&#10;Speaker: Hello everyone, welcome to our meeting about the new bus platform project...&#10;Interviewer: Can you tell us about your vision?&#10;Speaker: We want to revolutionize transportation..." 
+                    required></textarea>
+            </div>
+            
+            <button type="submit" class="submit-btn" id="submitBtn">
+                🚀 Process Transcript
+            </button>
+        </form>
+        
+        <div id="status" class="status"></div>
+    </div>
+
+    <script>
+        // ⚠️ REPLACE THIS WITH YOUR ACTUAL N8N WEBHOOK URL
+        const WEBHOOK_URL = 'https://your-n8n-instance.com/webhook/your-webhook-id';
+        
+        document.getElementById('transcriptForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const submitBtn = document.getElementById('submitBtn');
+            const statusDiv = document.getElementById('status');
+            const company = document.getElementById('company').value.trim();
+            const transcript = document.getElementById('transcript').value.trim();
+            
+            // Show loading state
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner"></span>Processing...';
+            statusDiv.className = 'status loading';
+            statusDiv.style.display = 'block';
+            statusDiv.innerHTML = '<span class="spinner"></span>Analyzing transcript and generating document...';
+            
+            try {
+                const response = await fetch(WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        transcript: transcript,
+                        company: company,
+                        timestamp: new Date().toISOString(),
+                        source: 'web_form'
+                    })
+                });
+                
+                if (response.ok) {
+                    // Success
+                    statusDiv.className = 'status success';
+                    statusDiv.innerHTML = '✅ Success! Transcript processed successfully. You will receive an email with the generated document shortly.';
+                    
+                    // Clear form
+                    document.getElementById('transcriptForm').reset();
+                } else {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+            } catch (error) {
+                console.error('Error:', error);
+                statusDiv.className = 'status error';
+                statusDiv.innerHTML = `❌ Error: ${error.message || 'Failed to process transcript. Please try again.'}`;
+            } finally {
+                // Reset button
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '🚀 Process Transcript';
+            }
+        });
+        
+        // Auto-resize textarea
+        const textarea = document.getElementById('transcript');
+        textarea.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = this.scrollHeight + 'px';
+        });
+    </script>
+</body>
+</html>
